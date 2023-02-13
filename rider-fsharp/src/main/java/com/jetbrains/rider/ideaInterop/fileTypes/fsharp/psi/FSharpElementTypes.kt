@@ -16,18 +16,8 @@ import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.lexer.FSharpTokenNodeTyp
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.lexer.FSharpTokenType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.impl.FSharpIndentationBlockImpl
 
-class FSharpFileElementType : RiderFileElementType("RIDER_FSHARP_FILE", FSharpLanguage, FSharpFileElementType) {
-  companion object {
-    private val FSharpFileElementType = IElementType("RIDER_FSHARP", FSharpScriptLanguage)
-  }
-}
-
-class FSharpScriptElementType :
-  RiderFileElementType("RIDER_FSHARP_SCRIPT_FILE", FSharpScriptLanguage, FSharpScriptElementType) {
-  companion object {
-    private val FSharpScriptElementType = IElementType("RIDER_FSHARP_SCRIPT", FSharpScriptLanguage)
-  }
-}
+class FSharpFileElementType : IFileElementType("FSharpFile", FSharpLanguage)
+class FSharpScriptElementType : IFileElementType("FSharpScript", FSharpScriptLanguage)
 
 open class FSharpElementType(debugName: String, val text: String = debugName) : IElementType(debugName, FSharpLanguage)
 

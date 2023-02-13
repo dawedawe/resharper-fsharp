@@ -14,7 +14,8 @@ class FSharpDummyParser : PsiParser {
   override fun parse(root: IElementType, builder: PsiBuilder): ASTNode {
     builder.putUserData(currentLineStartKey, 0)
     when (root) {
-      FSharpElementTypes.FILE -> builder.parseFile()
+      FSharpElementTypes.FILE -> builder.parseFile(root)
+      FSharpElementTypes.SCRIPT_FILE -> builder.parseFile(root)
       FSharpElementTypes.NAMESPACE -> builder.parseNamespace()
       FSharpElementTypes.TOP_LEVEL_MODULE -> builder.tryParseTopLevelModule()
       FSharpElementTypes.INDENTATION_BLOCK -> builder.parseBlock()
@@ -26,8 +27,8 @@ class FSharpDummyParser : PsiParser {
     return builder.treeBuilt
   }
 
-  private fun PsiBuilder.parseFile() {
-    parse(FSharpElementTypes.FILE) {
+  private fun PsiBuilder.parseFile(fileElementType: IElementType) {
+    parse(fileElementType) {
       whileMakingProgress {
         eatFilteredTokens()
         when (tokenType) {
@@ -68,8 +69,7 @@ class FSharpDummyParser : PsiParser {
   private fun PsiBuilder.getCurrentIndentation() =
     if (tokenType == FSharpTokenType.WHITESPACE) tokenText!!.length else 0
 
-  private fun PsiBuilder.parseDummyExpression() =
-    parseConcatenation()
+  private fun PsiBuilder.parseDummyExpression() = parseConcatenation()
 
   private fun PsiBuilder.parseConcatenation(): Boolean {
     val concatenationMark = mark()
@@ -114,8 +114,7 @@ class FSharpDummyParser : PsiParser {
     } else false
   }
 
-  private fun PsiBuilder.parseStringExpression() =
-    parseInterpolatedStringExpression() || parseAnyStringExpression()
+  private fun PsiBuilder.parseStringExpression() = parseInterpolatedStringExpression() || parseAnyStringExpression()
 
   private fun PsiBuilder.parseAnyStringExpression(): Boolean {
     if (tokenType in FSharpTokenType.ALL_STRINGS) {
@@ -186,8 +185,7 @@ class FSharpDummyParser : PsiParser {
     }
   }
 
-  private fun PsiBuilder.processQualifiedName() =
-    tryEatAllTokens(FSharpTokenType.IDENT, FSharpTokenType.DOT)
+  private fun PsiBuilder.processQualifiedName() = tryEatAllTokens(FSharpTokenType.IDENT, FSharpTokenType.DOT)
 
   private fun PsiBuilder.tryMoveToNextLine(): Boolean {
     while (!eof() && tokenType != FSharpTokenType.NEW_LINE) {
@@ -198,16 +196,11 @@ class FSharpDummyParser : PsiParser {
     return true
   }
 
-  private fun PsiBuilder.eatFilteredTokens(): Boolean =
-    tryEatAllTokens(
-      FSharpTokenType.WHITESPACE,
-      FSharpTokenType.NEW_LINE,
-      FSharpTokenType.LINE_COMMENT,
-      FSharpTokenType.BLOCK_COMMENT
-    )
+  private fun PsiBuilder.eatFilteredTokens(): Boolean = tryEatAllTokens(
+    FSharpTokenType.WHITESPACE, FSharpTokenType.NEW_LINE, FSharpTokenType.LINE_COMMENT, FSharpTokenType.BLOCK_COMMENT
+  )
 
-  private fun PsiBuilder.markComment() =
-    parse(FSharpElementTypes.COMMENT) { eatToken() }
+  private fun PsiBuilder.markComment() = parse(FSharpElementTypes.COMMENT) { eatToken() }
 
   private fun PsiBuilder.trySkipEmptyLines(): Boolean {
     //include comments
@@ -234,8 +227,7 @@ class FSharpDummyParser : PsiParser {
     return tokenType == FSharpTokenType.NEW_LINE
   }
 
-  private fun PsiBuilder.getCurrentTokenOffsetInLine(): Int =
-    currentOffset - getUserData(currentLineStartKey)!!
+  private fun PsiBuilder.getCurrentTokenOffsetInLine(): Int = currentOffset - getUserData(currentLineStartKey)!!
 
   fun PsiBuilder.nextIs(token: IElementType, step: Int = 1) = peekToken(step) == token
 
@@ -246,19 +238,16 @@ class FSharpDummyParser : PsiParser {
     while (true) {
       offset--
       val token = rawLookup(offset)
-      if (token == null)
-        return null
-      if (!isWhitespaceOrComment(token))
-        return token
+      if (token == null) return null
+      if (!isWhitespaceOrComment(token)) return token
     }
   }
 
   /** If current token is in expected - eats and returns true */
-  fun PsiBuilder.tryEatAnyToken(vararg tokens: IElementType): Boolean =
-    if (tokenType in tokens) {
-      advanceLexerWithNewLineCounting()
-      true
-    } else false
+  fun PsiBuilder.tryEatAnyToken(vararg tokens: IElementType): Boolean = if (tokenType in tokens) {
+    advanceLexerWithNewLineCounting()
+    true
+  } else false
 
   /** Eats tokens until current token is not in given. Returns true if builder was advanced */
   fun PsiBuilder.tryEatAllTokens(vararg tokens: IElementType): Boolean {
@@ -275,11 +264,10 @@ class FSharpDummyParser : PsiParser {
    * Advances lexer if current token is of expected type, does nothing otherwise.
    * @return true if token matches, false otherwise.
    */
-  fun PsiBuilder.tryEatToken(token: IElementType): Boolean =
-    if (tokenType == token) {
-      advanceLexerWithNewLineCounting()
-      true
-    } else false
+  fun PsiBuilder.tryEatToken(token: IElementType): Boolean = if (tokenType == token) {
+    advanceLexerWithNewLineCounting()
+    true
+  } else false
 
 
   /** Advance lexer and returns eaten token */
@@ -324,10 +312,8 @@ class FSharpDummyParser : PsiParser {
   /** Returns next token text. if step == 0 then returns current text  */
   fun PsiBuilder.peekTokenText(step: Int): String? {
     val m = mark()
-    if (step < 0)
-      throw Exception()
-    for (i in 0 until step)
-      advanceLexerWithNewLineCounting()
+    if (step < 0) throw Exception()
+    for (i in 0 until step) advanceLexerWithNewLineCounting()
 
     val text = tokenText
     m.rollbackTo()
@@ -340,28 +326,22 @@ class FSharpDummyParser : PsiParser {
     while (true) {
       offset++
       val token = rawLookup(offset)
-      if (token == null)
-        return null
-      if (!isWhitespaceOrComment(token))
-        return token
+      if (token == null) return null
+      if (!isWhitespaceOrComment(token)) return token
     }
   }
 
   /** Returns next token type. If step == 0 - returns current token type */
   fun PsiBuilder.peekToken(step: Int): IElementType? {
-    if (step == 0)
-      return tokenType
+    if (step == 0) return tokenType
     var offset = 0
     var read = 0
     while (true) {
       offset++
       val token = rawLookup(offset)
-      if (token == null)
-        return null
-      if (!isWhitespaceOrComment(token))
-        read++
-      if (read >= step)
-        return token
+      if (token == null) return null
+      if (!isWhitespaceOrComment(token)) read++
+      if (read >= step) return token
     }
   }
 
