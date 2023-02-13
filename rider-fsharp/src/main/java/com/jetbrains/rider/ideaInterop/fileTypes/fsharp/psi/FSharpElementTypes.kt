@@ -10,13 +10,24 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IReparseableElementType
 import com.intellij.psi.util.elementType
+import com.jetbrains.rider.ideaInterop.fileTypes.RiderFileElementType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.FSharpScriptLanguage
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.lexer.FSharpTokenNodeType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.lexer.FSharpTokenType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.impl.FSharpIndentationBlockImpl
 
-class FSharpFileElementType : IFileElementType("FSharpFile", FSharpLanguage)
-class FSharpScriptElementType : IFileElementType("FSharpScript", FSharpScriptLanguage)
+class FSharpFileElementType : RiderFileElementType("RIDER_FSHARP_FILE", FSharpLanguage, FSharpFileElementType) {
+  companion object {
+    private val FSharpFileElementType = IElementType("RIDER_FSHARP", FSharpScriptLanguage)
+  }
+}
+
+class FSharpScriptElementType :
+  RiderFileElementType("RIDER_FSHARP_SCRIPT_FILE", FSharpScriptLanguage, FSharpScriptElementType) {
+  companion object {
+    private val FSharpScriptElementType = IElementType("RIDER_FSHARP_SCRIPT", FSharpScriptLanguage)
+  }
+}
 
 open class FSharpElementType(debugName: String, val text: String = debugName) : IElementType(debugName, FSharpLanguage)
 
