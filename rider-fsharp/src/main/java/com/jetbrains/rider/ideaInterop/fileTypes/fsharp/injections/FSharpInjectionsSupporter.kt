@@ -14,6 +14,6 @@ class FSharpInjectionSupport : ClrLanguageInjectionSupport() {
   override fun isApplicableTo(host: PsiLanguageInjectionHost?) = host is FSharpStringLiteralExpression
 
   companion object {
-    const val FSHARP_SUPPORT_ID = "fsharp"
+    const val FSHARP_SUPPORT_ID = "F#"
   }
 }

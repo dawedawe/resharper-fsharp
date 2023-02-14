@@ -19,7 +19,9 @@ class FSharpConcatenationAwareInjector :
       return when (literal) {
         is FSharpInterpolatedStringLiteralExpression -> {
           when (literal.literalType) {
-            FSharpStringLiteralType.RegularInterpolatedString, FSharpStringLiteralType.VerbatimInterpolatedString -> {
+            FSharpStringLiteralType.RegularInterpolatedString,
+            FSharpStringLiteralType.VerbatimInterpolatedString,
+            FSharpStringLiteralType.TripleQuoteInterpolatedString -> {
               val parts = literal.children.filterIsInstance<FSharpInterpolatedStringLiteralExpressionPart>()
 
               // can't reliably inspect injected PSI with interpolations
@@ -33,28 +35,6 @@ class FSharpConcatenationAwareInjector :
                 TextRange(part.startOffsetInParent + startOffsetInPart, part.startOffsetInParent + part.textLength - 1)
               }
             }
-
-//            FSharpStringLiteralType.TripleQuoteInterpolatedString -> {
-//              val ranges = mutableListOf<TextRange>()
-//
-//              val literalStartOffset = literal.startOffset
-//              val parts = literal.children.filterIsInstance<FSharpInterpolatedStringLiteralExpressionPart>()
-//
-//              for (part in parts) {
-//                val token = CSharpStringExpressionUtil.tryGetFirstToken(part)
-//                when (token?.elementType) {
-//                  CSharpTokenType.INTERPOLATED_STRING_RAW_TEXT -> {
-//                    ranges.add(part.textRange.shiftLeft(literalStartOffset))
-//                  }
-//
-//                  CSharpTokenType.INTERPOLATED_STRING_RAW_INSERT_START, CSharpTokenType.INTERPOLATED_STRING_RAW_INSERT_END -> {
-//                    // can't reliably inspect injected PSI with interpolations
-//                    disableInspections = true
-//                  }
-//                }
-//              }
-//              ranges
-//            }
 
             else -> emptyList()
           }

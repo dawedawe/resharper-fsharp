@@ -28,6 +28,4 @@ interface FSharpInterpolatedStringLiteralExpressionPart : ClrLanguageInterpolate
   FSharpExpression
 
 interface FSharpInterpolatedStringLiteralExpression : ClrLanguageInterpolatedStringLiteralExpression,
-  FSharpStringLiteralExpression {
-  val hasInterpolations: Boolean
-}
+  FSharpStringLiteralExpression

@@ -11,9 +11,6 @@ import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.FSharpStringLiteralT
 
 class FSharpInterpolatedStringLiteralExpressionImpl(type: FSharpElementType) : CompositePsiElement(type),
   FSharpInterpolatedStringLiteralExpression {
-  override val hasInterpolations: Boolean
-    get() = true //CSharpStringExpressionUtil.hasInterpolations(this)
-
   override val literalType: FSharpStringLiteralType
     get() = FSharpStringLiteralType.RegularInterpolatedString //CSharpStringExpressionUtil.getLiteralType(this)
 
