@@ -37,11 +37,10 @@ class FSharpDummyBlockType : FSharpReparseableElementType("DUMMY_BLOCK") {
       if (currentNode is PsiElement && currentNode.parent != null && currentNode.parent.elementType is FSharpDummyBlockType) {
         if (currentNode.parent.firstChild == FSharpTokenType.WHITESPACE) currentNode.parent.firstChild.textLength
         else 0
-      } else {
-        -1
-      }
+      } else -1
 
-    val lines = newText.split("\n").filter { !it.isNullOrBlank() }
+    val lines = newText.split('\n').filter { it.isNotBlank() }
+
     var firstLineIndent = 0
     for ((i, line) in lines.withIndex()) {
       var indentOfCurrentLine = line.indexOfFirst { it != ' ' }

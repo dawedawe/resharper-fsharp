@@ -3,14 +3,12 @@ package com.jetbrains.rider.ideaInterop.fileTypes.fsharp
 import com.intellij.lang.ASTNode
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiParser
-import com.intellij.lang.WhitespaceSkippedCallback
 import com.intellij.openapi.util.Key
 import com.intellij.psi.tree.IElementType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.lexer.FSharpTokenType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.impl.FSharpElementTypes
 
 //TODO: mark comments
-//TODO: modules + reparse
 class FSharpDummyParser : PsiParser {
   override fun parse(root: IElementType, builder: PsiBuilder): ASTNode {
     builder.putUserData(currentLineStartKey, 0)
@@ -93,45 +91,36 @@ class FSharpDummyParser : PsiParser {
     advanceLexer() // eat plus token
     // since "123" +"123" is not allowed
     if (hasSpaceBeforePlus && !eatFilteredTokens()) return false
-    val tokenAfterPlus = tokenType
     // since
     //    "123"
     // + "123"
     // is not allowed
-    if (getCurrentTokenOffsetInLine() < requiredStringOffset) return false
-    return if (tokenAfterPlus in FSharpTokenType.ALL_STRINGS) {
-      parseStringExpression()
-    } else false
+    return getCurrentTokenOffsetInLine() >= requiredStringOffset && parseStringExpression()
   }
 
-  private fun PsiBuilder.parseStringExpression() = parseInterpolatedStringExpression() || parseAnyStringExpression()
+  private fun PsiBuilder.parseStringExpression() =
+    parseInterpolatedStringExpression() || parseAnyStringExpression()
 
-  private fun PsiBuilder.parseAnyStringExpression(): Boolean {
-    if (tokenType in FSharpTokenType.ALL_STRINGS) {
-      val string = mark()
+  private fun PsiBuilder.parseAnyStringExpression() =
+    if (tokenType !in FSharpTokenType.ALL_STRINGS) false
+    else parse {
       val interpolated = tokenType in FSharpTokenType.INTERPOLATED_STRINGS
       advanceLexerWithNewLineCounting()
-      val tokenType = if (interpolated) FSharpElementTypes.INTERPOLATED_STRING_LITERAL_EXPRESSION_PART
+      if (interpolated) FSharpElementTypes.INTERPOLATED_STRING_LITERAL_EXPRESSION_PART
       else FSharpElementTypes.STRING_LITERAL_EXPRESSION
-      string.done(tokenType)
-      return true
     }
-    return false
-  }
 
-  private fun PsiBuilder.parseInterpolatedStringExpression(): Boolean {
-    if (!FSharpTokenType.INTERPOLATED_STRING_STARTS.contains(tokenType)) return false
-    val string = mark()
-    var nestingDepth = 0
-    while (!eof()) {
-      if (tokenType in FSharpTokenType.INTERPOLATED_STRING_STARTS) nestingDepth += 1
-      if (tokenType in FSharpTokenType.INTERPOLATED_STRING_ENDS) nestingDepth -= 1
-      if (!parseAnyStringExpression()) advanceLexerWithNewLineCounting()
-      if (nestingDepth == 0) break
+  private fun PsiBuilder.parseInterpolatedStringExpression() =
+    if (!FSharpTokenType.INTERPOLATED_STRING_STARTS.contains(tokenType)) false
+    else parse(FSharpElementTypes.INTERPOLATED_STRING_LITERAL_EXPRESSION) {
+      var nestingDepth = 0
+      whileMakingProgress {
+        if (tokenType in FSharpTokenType.INTERPOLATED_STRING_STARTS) nestingDepth += 1
+        if (tokenType in FSharpTokenType.INTERPOLATED_STRING_ENDS) nestingDepth -= 1
+        if (!parseAnyStringExpression()) advanceLexerWithNewLineCounting()
+        nestingDepth != 0
+      }
     }
-    string.done(FSharpElementTypes.INTERPOLATED_STRING_LITERAL_EXPRESSION)
-    return true
-  }
 
   private fun PsiBuilder.parseExpressions() {
     while (!eof() && tokenType != FSharpTokenType.NEW_LINE) {
@@ -142,32 +131,30 @@ class FSharpDummyParser : PsiParser {
     trySkipEmptyLines()
   }
 
-  private fun PsiBuilder.tryParseTopLevelModule(): Boolean {
-    return parseOrRollback(FSharpElementTypes.TOP_LEVEL_MODULE) {
+  private fun PsiBuilder.tryParseTopLevelModule() =
+    parseOrRollback(FSharpElementTypes.TOP_LEVEL_MODULE) {
       advanceLexer() // skip module token
       eatFilteredTokens()
       if (tokenType == FSharpTokenType.LBRACK_LESS) {
-        eatUntilAny(FSharpTokenType.GREATER_RBRACK)
+        parseAttribute()
         eatFilteredTokens()
       }
       if (tokenType == FSharpTokenType.REC) {
-        advanceLexer()
+        advanceLexer() // skip rec token
         eatFilteredTokens()
       }
       processQualifiedName()
       eatFilteredTokens()
       trySkipEmptyLines()
       when (tokenType) {
+        // parse nested module as a simple indentation block
         FSharpTokenType.EQUALS -> false
         else -> {
-          whileMakingProgress {
-            parseBlock()
-          }
+          whileMakingProgress { parseBlock() }
           true
         }
       }
     }
-  }
 
   private fun PsiBuilder.parseNamespace() {
     parse(FSharpElementTypes.NAMESPACE) {
@@ -192,9 +179,13 @@ class FSharpDummyParser : PsiParser {
     return true
   }
 
-  private fun PsiBuilder.eatFilteredTokens(): Boolean = tryEatAllTokens(
-    FSharpTokenType.WHITESPACE, FSharpTokenType.NEW_LINE, FSharpTokenType.LINE_COMMENT, FSharpTokenType.BLOCK_COMMENT
-  )
+  private fun PsiBuilder.eatFilteredTokens(): Boolean =
+    tryEatAllTokens(
+      FSharpTokenType.WHITESPACE,
+      FSharpTokenType.NEW_LINE,
+      FSharpTokenType.LINE_COMMENT,
+      FSharpTokenType.BLOCK_COMMENT
+    )
 
   private fun PsiBuilder.markComment() = parse(FSharpElementTypes.COMMENT) { eatToken() }
 
