@@ -8,7 +8,6 @@ object FSharpElementTypes {
   val NAMESPACE = FSharpNamespaceType()
   val TOP_LEVEL_MODULE = FSharpTopLevelModuleType()
   val INDENTATION_BLOCK = FSharpDummyBlockType()
-  val COMMENT = FSharpCommentType()
 
   val DUMMY_EXPRESSION = createCompositeElementType(
     "DUMMY_EXPRESSION", ::FSharpExpressionImpl

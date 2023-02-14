@@ -8,7 +8,6 @@ import com.intellij.psi.tree.IElementType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.lexer.FSharpTokenType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.impl.FSharpElementTypes
 
-//TODO: mark comments
 class FSharpDummyParser : PsiParser {
   override fun parse(root: IElementType, builder: PsiBuilder): ASTNode {
     builder.putUserData(currentLineStartKey, 0)
@@ -18,7 +17,6 @@ class FSharpDummyParser : PsiParser {
       FSharpElementTypes.NAMESPACE -> builder.parseNamespace()
       FSharpElementTypes.TOP_LEVEL_MODULE -> builder.tryParseTopLevelModule()
       FSharpElementTypes.INDENTATION_BLOCK -> builder.parseBlock()
-      FSharpElementTypes.COMMENT -> builder.markComment()
       else -> {
         error("unknown root $root in parsing request")
       }
@@ -179,15 +177,13 @@ class FSharpDummyParser : PsiParser {
     return true
   }
 
-  private fun PsiBuilder.eatFilteredTokens(): Boolean =
+  private fun PsiBuilder.eatFilteredTokens() =
     tryEatAllTokens(
       FSharpTokenType.WHITESPACE,
       FSharpTokenType.NEW_LINE,
       FSharpTokenType.LINE_COMMENT,
       FSharpTokenType.BLOCK_COMMENT
     )
-
-  private fun PsiBuilder.markComment() = parse(FSharpElementTypes.COMMENT) { eatToken() }
 
   private fun PsiBuilder.trySkipEmptyLines(): Boolean {
     //include comments
@@ -200,10 +196,21 @@ class FSharpDummyParser : PsiParser {
   }
 
   private fun PsiBuilder.advanceLexerWithNewLineCounting() {
-    if (tokenType == FSharpTokenType.NEW_LINE) {
-      advanceLexer()
-      putUserData(currentLineStartKey, currentOffset)
-    } else advanceLexer()
+    when (tokenType) {
+      FSharpTokenType.NEW_LINE -> {
+        advanceLexer()
+        putUserData(currentLineStartKey, currentOffset)
+      }
+
+      in FSharpTokenType.STRINGS -> {
+        val lastEndOfLineIndex = tokenText!!.lastIndexOf('\n')
+        val stringStartOffset = currentOffset
+        advanceLexer()
+        if (lastEndOfLineIndex != -1) putUserData(currentLineStartKey, stringStartOffset + lastEndOfLineIndex + 1)
+      }
+
+      else -> advanceLexer()
+    }
   }
 
   private fun isLineEmpty(builder: PsiBuilder): Boolean {
@@ -245,7 +252,6 @@ class FSharpDummyParser : PsiParser {
     }
     return count > 0
   }
-
 
   /**
    * Advances lexer if current token is of expected type, does nothing otherwise.

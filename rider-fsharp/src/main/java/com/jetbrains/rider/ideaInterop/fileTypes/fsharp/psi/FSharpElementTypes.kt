@@ -83,13 +83,6 @@ class FSharpTopLevelModuleType : FSharpReparseableElementType("TOP_LEVEL_MODULE"
     newText.trim().startsWith("module")
 }
 
-class FSharpCommentType : FSharpReparseableElementType("COMMENT") {
-  override fun createNode(text: CharSequence?) = FSharpDummyBlockImpl(this, text)
-  override fun createCompositeNode() = FSharpDummyBlockImpl(this, null)
-  override fun isReparseable(currentNode: ASTNode, newText: CharSequence, fileLanguage: Language, project: Project) =
-    newText.startsWith("(*") && newText.endsWith("*)") || newText.startsWith("//")
-}
-
 inline fun createCompositeElementType(debugName: String, crossinline elementFactory: (FSharpElementType) -> ASTNode) =
   object : FSharpCompositeElementType(debugName) {
     override fun createCompositeNode() = elementFactory(this)

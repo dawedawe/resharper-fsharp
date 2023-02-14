@@ -10,6 +10,8 @@ class FSharpDummyParserTests : RiderFrontendParserTest("", "fs", FSharpParserDef
   fun `test concatenation 04 - multiline with wrong offset`() = doTest()
   fun `test concatenation 05 - with ident`() = doTest()
   fun `test concatenation 06 - unfinished`() = doTest()
+  fun `test concatenation 07 - multiline string`() = doTest()
+  fun `test concatenation 08 - multiline string with wrong offset`() = doTest()
   fun `test namespaces 01`() = doTest()
   fun `test namespaces 02 - recovery`() = doTest()
   fun `test top level module 01`() = doTest()
