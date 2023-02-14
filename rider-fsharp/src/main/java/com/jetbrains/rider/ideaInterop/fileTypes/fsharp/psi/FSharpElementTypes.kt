@@ -12,7 +12,7 @@ import com.intellij.psi.util.elementType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.FSharpLanguage
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.FSharpScriptLanguage
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.lexer.FSharpTokenType
-import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.impl.FSharpIndentationBlockImpl
+import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.impl.FSharpDummyBlockImpl
 
 class FSharpFileElementType : IFileElementType("FSharpFile", FSharpLanguage)
 class FSharpScriptElementType : IFileElementType("FSharpScript", FSharpScriptLanguage)
@@ -26,20 +26,15 @@ abstract class FSharpReparseableElementType(debugName: String) : IReparseableEle
   abstract override fun createNode(text: CharSequence?): ASTNode?
 }
 
-class FSharpIndentationBlockType : FSharpReparseableElementType("INDENTATION_BLOCK") {
-  override fun createNode(text: CharSequence?): ASTNode {
-    return FSharpIndentationBlockImpl(this, text)
-  }
-
-  override fun createCompositeNode(): ASTNode {
-    return FSharpIndentationBlockImpl(this, null)
-  }
+class FSharpDummyBlockType : FSharpReparseableElementType("DUMMY_BLOCK") {
+  override fun createNode(text: CharSequence?) = FSharpDummyBlockImpl(this, text)
+  override fun createCompositeNode() = FSharpDummyBlockImpl(this, null)
 
   override fun isReparseable(
     currentNode: ASTNode, newText: CharSequence, fileLanguage: Language, project: Project
   ): Boolean {
     val parentIndent =
-      if (currentNode is PsiElement && currentNode.parent != null && currentNode.parent.elementType is FSharpIndentationBlockType) {
+      if (currentNode is PsiElement && currentNode.parent != null && currentNode.parent.elementType is FSharpDummyBlockType) {
         if (currentNode.parent.firstChild == FSharpTokenType.WHITESPACE) currentNode.parent.firstChild.textLength
         else 0
       } else {
@@ -63,8 +58,8 @@ class FSharpIndentationBlockType : FSharpReparseableElementType("INDENTATION_BLO
 }
 
 class FSharpNamespaceType : FSharpReparseableElementType("NAMESPACE") {
-  override fun createNode(text: CharSequence?) = FSharpIndentationBlockImpl(this, text)
-  override fun createCompositeNode() = FSharpIndentationBlockImpl(this, null)
+  override fun createNode(text: CharSequence?) = FSharpDummyBlockImpl(this, text)
+  override fun createCompositeNode() = FSharpDummyBlockImpl(this, null)
   override fun isReparseable(
     currentNode: ASTNode, newText: CharSequence, fileLanguage: Language, project: Project
   ): Boolean {
@@ -78,11 +73,11 @@ class FSharpNamespaceType : FSharpReparseableElementType("NAMESPACE") {
 
 class FSharpTopLevelModuleType : FSharpReparseableElementType("TOP_LEVEL_MODULE") {
   override fun createNode(text: CharSequence?): ASTNode {
-    return FSharpIndentationBlockImpl(this, text)
+    return FSharpDummyBlockImpl(this, text)
   }
 
   override fun createCompositeNode(): ASTNode {
-    return FSharpIndentationBlockImpl(this, null)
+    return FSharpDummyBlockImpl(this, null)
   }
 
   override fun isReparseable(currentNode: ASTNode, newText: CharSequence, fileLanguage: Language, project: Project) =
@@ -90,8 +85,8 @@ class FSharpTopLevelModuleType : FSharpReparseableElementType("TOP_LEVEL_MODULE"
 }
 
 class FSharpCommentType : FSharpReparseableElementType("COMMENT") {
-  override fun createNode(text: CharSequence?) = FSharpIndentationBlockImpl(this, text)
-  override fun createCompositeNode() = FSharpIndentationBlockImpl(this, null)
+  override fun createNode(text: CharSequence?) = FSharpDummyBlockImpl(this, text)
+  override fun createCompositeNode() = FSharpDummyBlockImpl(this, null)
   override fun isReparseable(currentNode: ASTNode, newText: CharSequence, fileLanguage: Language, project: Project) =
     newText.startsWith("(*") && newText.endsWith("*)") || newText.startsWith("//")
 }

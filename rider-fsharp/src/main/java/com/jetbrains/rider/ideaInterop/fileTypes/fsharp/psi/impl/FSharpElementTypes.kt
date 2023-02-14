@@ -7,8 +7,8 @@ object FSharpElementTypes {
   val SCRIPT_FILE = FSharpScriptElementType()
   val NAMESPACE = FSharpNamespaceType()
   val TOP_LEVEL_MODULE = FSharpTopLevelModuleType()
-  val INDENTATION_BLOCK = FSharpIndentationBlockType()
-  val COMMENT = FSharpIndentationBlockType()
+  val INDENTATION_BLOCK = FSharpDummyBlockType()
+  val COMMENT = FSharpCommentType()
 
   val DUMMY_EXPRESSION = createCompositeElementType(
     "DUMMY_EXPRESSION", ::FSharpExpressionImpl

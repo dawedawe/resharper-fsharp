@@ -1,11 +1,5 @@
 FSharpFile
-  PsiElement(INDENTATION_BLOCK)
-    PsiElement(LET)('let')
-    PsiElement(WHITESPACE)(' ')
-    PsiElement(UNDERSCORE)('_')
-    PsiElement(WHITESPACE)(' ')
-    PsiElement(EQUALS)('=')
-    PsiElement(WHITESPACE)(' ')
+  PsiElement(DUMMY_BLOCK)
     FSharpStringLiteralExpression
       PsiElement(STRING)('"123"')
     PsiElement(WHITESPACE)(' ')

@@ -1,5 +1,5 @@
 FSharpFile
-  PsiElement(INDENTATION_BLOCK)
+  PsiElement(DUMMY_BLOCK)
     PsiElement(LET)('let')
     PsiElement(WHITESPACE)(' ')
     PsiElement(UNDERSCORE)('_')

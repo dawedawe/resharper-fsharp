@@ -14,7 +14,7 @@ interface FSharpScript : FSharpElement, PsiFile
 
 interface FSharpExpression : FSharpElement
 interface FSharpReparseableElement : FSharpElement
-interface FSharpIndentationBlock : FSharpReparseableElement
+interface FSharpDummyBlock : FSharpReparseableElement
 
 interface FSharpStringLiteralExpression : ClrLanguageStringLiteralExpression, FSharpElement, PsiLanguageInjectionHost {
   val literalType: FSharpStringLiteralType

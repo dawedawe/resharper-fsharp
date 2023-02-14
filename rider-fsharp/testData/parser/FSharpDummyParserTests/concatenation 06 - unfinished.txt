@@ -4,5 +4,3 @@ FSharpFile
       PsiElement(STRING)('"123"')
     PsiElement(WHITESPACE)(' ')
     PsiElement(PLUS)('+')
-    FSharpStringLiteralExpression
-      PsiElement(STRING)('"123"')

@@ -2,5 +2,5 @@ FSharpFile
   PsiElement(NAMESPACE)
     PsiElement(NAMESPACE)('namespace')
     PsiElement(NEW_LINE)('\n')
-    PsiElement(INDENTATION_BLOCK)
+    PsiElement(DUMMY_BLOCK)
       PsiElement(NAMESPACE)('namespace')

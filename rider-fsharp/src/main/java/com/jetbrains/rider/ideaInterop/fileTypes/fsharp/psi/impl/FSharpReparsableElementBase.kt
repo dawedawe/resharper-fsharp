@@ -5,4 +5,4 @@ import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.FSharpReparseableEle
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.FSharpReparseableElementType
 
 abstract class FSharpReparseableElementBase(blockType: FSharpReparseableElementType, buffer: CharSequence?) :
-    LazyParseablePsiElement(blockType, buffer), FSharpReparseableElement
+  LazyParseablePsiElement(blockType, buffer), FSharpReparseableElement

@@ -3,6 +3,7 @@ package com.jetbrains.rider.ideaInterop.fileTypes.fsharp
 import com.intellij.lang.ASTNode
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiParser
+import com.intellij.lang.WhitespaceSkippedCallback
 import com.intellij.openapi.util.Key
 import com.intellij.psi.tree.IElementType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.lexer.FSharpTokenType
@@ -71,30 +72,19 @@ class FSharpDummyParser : PsiParser {
 
   private fun PsiBuilder.parseDummyExpression() = parseConcatenation()
 
-  private fun PsiBuilder.parseConcatenation(): Boolean {
-    val concatenationMark = mark()
+  private fun PsiBuilder.parseConcatenation() =
+    tryParse(FSharpElementTypes.DUMMY_EXPRESSION) {
+      val stringLineOffset = getCurrentTokenOffsetInLine()
 
-    val stringLineOffset = getCurrentTokenOffsetInLine()
-    if (!parseStringExpression()) {
-      concatenationMark.drop()
-      return false
+      if (!parseStringExpression()) false
+      else if (!scanOrRollback { tryParseConcatenationPartAhead(stringLineOffset) }) false
+      else {
+        whileMakingProgress {
+          scanOrRollback { tryParseConcatenationPartAhead(stringLineOffset) }
+        }
+        true
+      }
     }
-
-    if (!tryParseConcatenationPartAhead(stringLineOffset)) {
-      concatenationMark.drop()
-      return true
-    }
-
-    var lastConcatenationMark = mark()
-    while (tryParseConcatenationPartAhead(stringLineOffset)) {
-      lastConcatenationMark.drop()
-      lastConcatenationMark = mark()
-    }
-
-    concatenationMark.doneBefore(FSharpElementTypes.DUMMY_EXPRESSION, lastConcatenationMark)
-    lastConcatenationMark.drop()
-    return true
-  }
 
   //todo: multiline string token
   private fun PsiBuilder.tryParseConcatenationPartAhead(requiredStringOffset: Int): Boolean {
@@ -160,7 +150,7 @@ class FSharpDummyParser : PsiParser {
         eatUntilAny(FSharpTokenType.GREATER_RBRACK)
         eatFilteredTokens()
       }
-      if (tokenType == FSharpTokenType.REC){
+      if (tokenType == FSharpTokenType.REC) {
         advanceLexer()
         eatFilteredTokens()
       }
