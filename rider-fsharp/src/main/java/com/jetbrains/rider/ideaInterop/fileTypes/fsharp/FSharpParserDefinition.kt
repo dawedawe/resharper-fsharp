@@ -3,7 +3,6 @@ package com.jetbrains.rider.ideaInterop.fileTypes.fsharp
 import com.intellij.lang.ASTNode
 import com.intellij.lang.ParserDefinition
 import com.intellij.lang.PsiParser
-import com.intellij.lexer.Lexer
 import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
@@ -18,16 +17,14 @@ import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.impl.FSharpElementTy
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.impl.FSharpFileImpl
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.impl.FSharpScriptImpl
 
-abstract class FSharpParserDefinitionBase(
-  private val fileElementType: IFileElementType
-) : ParserDefinition {
+abstract class FSharpParserDefinitionBase : ParserDefinition {
   private val logger = getLogger<FSharpParserDefinitionBase>()
-  override fun createLexer(project: Project?): Lexer = FSharpLexer()
-  override fun getFileNodeType() = fileElementType
+  override fun createLexer(project: Project?) = FSharpLexer()
   override fun createParser(project: Project): PsiParser = FSharpDummyParser()
   override fun getCommentTokens(): TokenSet = FSharpTokenType.COMMENTS
   override fun getStringLiteralElements(): TokenSet = FSharpTokenType.ALL_STRINGS
   abstract override fun createFile(p0: FileViewProvider): PsiFile
+  abstract override fun getFileNodeType(): IFileElementType
   override fun createElement(node: ASTNode): PsiElement {
     if (node is PsiElement) {
       logger.error("Dummy blocks should be lazy and not parsed like this")
@@ -40,10 +37,12 @@ abstract class FSharpParserDefinitionBase(
 }
 
 
-class FSharpParserDefinition : FSharpParserDefinitionBase(FSharpElementTypes.FILE) {
+class FSharpParserDefinition : FSharpParserDefinitionBase() {
   override fun createFile(viewProvider: FileViewProvider) = FSharpFileImpl(viewProvider)
+  override fun getFileNodeType(): IFileElementType = FSharpElementTypes.FILE
 }
 
-class FSharpScriptParserDefinition : FSharpParserDefinitionBase(FSharpElementTypes.SCRIPT_FILE) {
+class FSharpScriptParserDefinition : FSharpParserDefinitionBase() {
   override fun createFile(viewProvider: FileViewProvider) = FSharpScriptImpl(viewProvider)
+  override fun getFileNodeType(): IFileElementType = FSharpElementTypes.SCRIPT_FILE
 }

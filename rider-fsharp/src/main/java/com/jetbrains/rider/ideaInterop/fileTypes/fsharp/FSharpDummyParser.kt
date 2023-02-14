@@ -156,8 +156,14 @@ class FSharpDummyParser : PsiParser {
     return parseOrRollback(FSharpElementTypes.TOP_LEVEL_MODULE) {
       advanceLexer() // skip module token
       eatFilteredTokens()
-      if (tokenType == FSharpTokenType.LBRACK_LESS) eatUntilAny(FSharpTokenType.GREATER_RBRACK)
-      eatFilteredTokens()
+      if (tokenType == FSharpTokenType.LBRACK_LESS) {
+        eatUntilAny(FSharpTokenType.GREATER_RBRACK)
+        eatFilteredTokens()
+      }
+      if (tokenType == FSharpTokenType.REC){
+        advanceLexer()
+        eatFilteredTokens()
+      }
       processQualifiedName()
       eatFilteredTokens()
       trySkipEmptyLines()

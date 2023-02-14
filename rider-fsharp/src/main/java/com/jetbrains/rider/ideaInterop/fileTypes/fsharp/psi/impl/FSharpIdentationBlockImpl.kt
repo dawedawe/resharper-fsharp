@@ -4,5 +4,4 @@ import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.FSharpIndentationBlo
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.FSharpReparseableElementType
 
 class FSharpIndentationBlockImpl(blockType: FSharpReparseableElementType, buffer: CharSequence?) :
-    FSharpReparseableElementBase(blockType, buffer), FSharpIndentationBlock {
-}
+  FSharpReparseableElementBase(blockType, buffer), FSharpIndentationBlock

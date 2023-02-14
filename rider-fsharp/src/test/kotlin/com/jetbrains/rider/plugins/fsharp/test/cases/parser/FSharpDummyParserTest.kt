@@ -13,4 +13,11 @@ class FSharpDummyParserTests : RiderFrontendParserTest("", "fs", FSharpParserDef
   fun `test namespaces 01`() = doTest()
   fun `test namespaces 02 - recovery`() = doTest()
   fun `test top level module 01`() = doTest()
+  fun `test top level module 02 - rec`() = doTest()
+  fun `test module 01`() = doTest()
+}
+
+
+class FSharpScriptDummyParserTests : RiderFrontendParserTest("", "fsi", FSharpParserDefinition()) {
+  fun `test no module 01`() = doTest()
 }

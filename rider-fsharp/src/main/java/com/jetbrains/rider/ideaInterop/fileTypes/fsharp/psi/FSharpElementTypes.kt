@@ -2,17 +2,15 @@ package com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi
 
 import com.intellij.lang.ASTNode
 import com.intellij.lang.Language
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.ICompositeElementType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
-import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.FSharpLanguage
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IReparseableElementType
 import com.intellij.psi.util.elementType
-import com.jetbrains.rider.ideaInterop.fileTypes.RiderFileElementType
+import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.FSharpLanguage
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.FSharpScriptLanguage
-import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.lexer.FSharpTokenNodeType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.lexer.FSharpTokenType
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.impl.FSharpIndentationBlockImpl
 
@@ -87,15 +85,8 @@ class FSharpTopLevelModuleType : FSharpReparseableElementType("TOP_LEVEL_MODULE"
     return FSharpIndentationBlockImpl(this, null)
   }
 
-  override fun isReparseable(
-    currentNode: ASTNode, newText: CharSequence, fileLanguage: Language, project: Project
-  ): Boolean {
-    val trimmed = newText.trim()
-    return when {
-      !trimmed.startsWith("module") || trimmed.contains("\nnamespace") -> false
-      else -> true
-    }
-  }
+  override fun isReparseable(currentNode: ASTNode, newText: CharSequence, fileLanguage: Language, project: Project) =
+    newText.trim().startsWith("module")
 }
 
 class FSharpCommentType : FSharpReparseableElementType("COMMENT") {

@@ -10,9 +10,9 @@ import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.FSharpFile
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.FSharpScript
 
 class FSharpFileImpl(viewProvider: FileViewProvider) : FSharpFile, PsiFileBase(viewProvider, FSharpLanguage) {
-    override fun getFileType() = FSharpFileType
+  override fun getFileType() = FSharpFileType
 }
 
 class FSharpScriptImpl(viewProvider: FileViewProvider) : FSharpScript, PsiFileBase(viewProvider, FSharpScriptLanguage) {
-    override fun getFileType() = FSharpScriptFileType
+  override fun getFileType() = FSharpScriptFileType
 }

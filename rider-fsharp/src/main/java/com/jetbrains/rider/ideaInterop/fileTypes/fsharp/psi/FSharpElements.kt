@@ -27,10 +27,6 @@ interface FSharpStringLiteralExpression : ClrLanguageStringLiteralExpression, FS
 interface FSharpInterpolatedStringLiteralExpressionPart : ClrLanguageInterpolatedStringLiteralExpressionPart,
   FSharpExpression
 
-/**
- * Represents an entire interpolated string.
- * This node contains both interpolated string parts and code written between those parts.
- */
 interface FSharpInterpolatedStringLiteralExpression : ClrLanguageInterpolatedStringLiteralExpression,
   FSharpStringLiteralExpression {
   val hasInterpolations: Boolean
