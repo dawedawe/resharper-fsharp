@@ -109,7 +109,7 @@ class FSharpDummyParser : PsiParser {
     }
 
   private fun PsiBuilder.parseInterpolatedStringExpression() =
-    if (!FSharpTokenType.INTERPOLATED_STRING_STARTS.contains(tokenType)) false
+    if (!FSharpTokenType.INTERPOLATED_STRINGS.contains(tokenType)) false
     else parse(FSharpElementTypes.INTERPOLATED_STRING_LITERAL_EXPRESSION) {
       var nestingDepth = 0
       whileMakingProgress {
