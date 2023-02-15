@@ -85,7 +85,6 @@ class FSharpDummyParser : PsiParser {
       }
     }
 
-  //todo: multiline string token
   private fun PsiBuilder.tryParseConcatenationPartAhead(requiredStringOffset: Int): Boolean {
     val hasSpaceBeforePlus = eatFilteredTokens()
     if (tokenType != FSharpTokenType.PLUS) return false
