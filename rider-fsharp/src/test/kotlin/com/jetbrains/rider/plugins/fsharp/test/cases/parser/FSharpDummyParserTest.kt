@@ -32,6 +32,7 @@ class FSharpDummyParserTests : RiderFrontendParserTest("", "fs", FSharpParserDef
 
   fun `test dummy blocks 01`() = doTest()
   fun `test dummy blocks 02`() = doTest()
+  fun `test dummy blocks 03 - new lines`() = doTest()
 }
 
 

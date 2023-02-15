@@ -27,7 +27,7 @@ class FSharpDummyParser : PsiParser {
   private fun PsiBuilder.parseFile(fileElementType: IElementType) {
     parse(fileElementType) {
       whileMakingProgress {
-        eatFilteredTokens() //TODO: remove?
+        eatFilteredTokens()
         when (tokenType) {
           FSharpTokenType.NAMESPACE -> parseNamespace()
           FSharpTokenType.MODULE -> if (!tryParseTopLevelModule()) parseBlock()
@@ -38,6 +38,42 @@ class FSharpDummyParser : PsiParser {
       }
     }
   }
+
+  private fun PsiBuilder.parseNamespace() {
+    parse(FSharpElementTypes.NAMESPACE) {
+      advanceLexer() // skip namespace token
+      eatUntilAny(FSharpTokenType.NEW_LINE)
+      eatFilteredTokens()
+      whileMakingProgress {
+        parseBlock()
+        tokenType != FSharpTokenType.NAMESPACE
+      }
+    }
+  }
+
+  private fun PsiBuilder.tryParseTopLevelModule() =
+    parseOrRollback(FSharpElementTypes.TOP_LEVEL_MODULE) {
+      advanceLexer() // skip module token
+      eatFilteredTokens()
+      if (tokenType == FSharpTokenType.LBRACK_LESS) {
+        parseAttribute()
+        eatFilteredTokens()
+      }
+      if (tokenType == FSharpTokenType.REC) {
+        advanceLexer() // skip rec token
+        eatFilteredTokens()
+      }
+      processQualifiedName()
+      eatFilteredTokens()
+      when (tokenType) {
+        // parse nested module as a simple indentation block
+        FSharpTokenType.EQUALS -> false
+        else -> {
+          whileMakingProgress { parseBlock() }
+          true
+        }
+      }
+    }
 
   // parse [<...>]
   private fun PsiBuilder.parseAttribute() {
@@ -52,7 +88,7 @@ class FSharpDummyParser : PsiParser {
 
       parseExpressionsOnLine()
       advanceLexerWithNewLineCounting()
-      trySkipEmptyLines()
+      skipEmptyLines()
       parseBlockBody(myIndentation) || isTopLevel
     }
   }
@@ -129,53 +165,8 @@ class FSharpDummyParser : PsiParser {
     }
   }
 
-  private fun PsiBuilder.tryParseTopLevelModule() =
-    parseOrRollback(FSharpElementTypes.TOP_LEVEL_MODULE) {
-      advanceLexer() // skip module token
-      eatFilteredTokens()
-      if (tokenType == FSharpTokenType.LBRACK_LESS) {
-        parseAttribute()
-        eatFilteredTokens()
-      }
-      if (tokenType == FSharpTokenType.REC) {
-        advanceLexer() // skip rec token
-        eatFilteredTokens()
-      }
-      processQualifiedName()
-      eatFilteredTokens()
-      trySkipEmptyLines()
-      when (tokenType) {
-        // parse nested module as a simple indentation block
-        FSharpTokenType.EQUALS -> false
-        else -> {
-          whileMakingProgress { parseBlock() }
-          true
-        }
-      }
-    }
-
-  private fun PsiBuilder.parseNamespace() {
-    parse(FSharpElementTypes.NAMESPACE) {
-      advanceLexer() // skip namespace token
-      tryMoveToNextLine()
-      trySkipEmptyLines()
-      whileMakingProgress {
-        parseBlock()
-        tokenType != FSharpTokenType.NAMESPACE
-      }
-    }
-  }
-
-  private fun PsiBuilder.processQualifiedName() = tryEatAllTokens(FSharpTokenType.IDENT, FSharpTokenType.DOT)
-
-  private fun PsiBuilder.tryMoveToNextLine(): Boolean {
-    while (!eof() && tokenType != FSharpTokenType.NEW_LINE) {
-      advanceLexerWithNewLineCounting()
-    }
-    if (eof()) return false
-    advanceLexerWithNewLineCounting()
-    return true
-  }
+  private fun PsiBuilder.processQualifiedName() =
+    tryEatAllTokens(FSharpTokenType.IDENT, FSharpTokenType.DOT)
 
   private fun PsiBuilder.eatFilteredTokens() =
     tryEatAllTokens(
@@ -185,14 +176,20 @@ class FSharpDummyParser : PsiParser {
       FSharpTokenType.BLOCK_COMMENT
     )
 
-  private fun PsiBuilder.trySkipEmptyLines(): Boolean {
-    //include comments
-    var wasSkipped = false
-    while (isLineEmpty(this)) {
-      wasSkipped = true
-      if (!tryMoveToNextLine()) break
+  private fun PsiBuilder.skipEmptyLines() {
+    whileMakingProgress {
+      scanOrRollback {
+        tryEatAllTokens(
+          FSharpTokenType.WHITESPACE,
+          FSharpTokenType.LINE_COMMENT,
+          FSharpTokenType.BLOCK_COMMENT
+        )
+        if (tokenType != FSharpTokenType.NEW_LINE) false else {
+          advanceLexerWithNewLineCounting()
+          true
+        }
+      }
     }
-    return wasSkipped
   }
 
   private fun PsiBuilder.advanceLexerWithNewLineCounting() {
@@ -214,38 +211,16 @@ class FSharpDummyParser : PsiParser {
     }
   }
 
-  private fun isLineEmpty(builder: PsiBuilder): Boolean {
-    var tokenType = builder.tokenType
-    if (builder.tokenType == FSharpTokenType.WHITESPACE) {
-      tokenType = builder.lookAhead(1)
-    }
-    return tokenType == FSharpTokenType.NEW_LINE
-  }
-
-  private fun PsiBuilder.getCurrentTokenOffsetInLine(): Int = currentOffset - getUserData(currentLineStartKey)!!
-
-  fun PsiBuilder.nextIs(token: IElementType, step: Int = 1) = peekToken(step) == token
-
-
-  /** Returns previous token type */
-  fun PsiBuilder.previousToken(): IElementType? {
-    var offset = 0
-    while (true) {
-      offset--
-      val token = rawLookup(offset)
-      if (token == null) return null
-      if (!isWhitespaceOrComment(token)) return token
-    }
-  }
+  private fun PsiBuilder.getCurrentTokenOffsetInLine() = currentOffset - getUserData(currentLineStartKey)!!
 
   /** If current token is in expected - eats and returns true */
-  fun PsiBuilder.tryEatAnyToken(vararg tokens: IElementType): Boolean = if (tokenType in tokens) {
+  private fun PsiBuilder.tryEatAnyToken(vararg tokens: IElementType): Boolean = if (tokenType in tokens) {
     advanceLexerWithNewLineCounting()
     true
   } else false
 
   /** Eats tokens until current token is not in given. Returns true if builder was advanced */
-  fun PsiBuilder.tryEatAllTokens(vararg tokens: IElementType): Boolean {
+  private fun PsiBuilder.tryEatAllTokens(vararg tokens: IElementType): Boolean {
     var count = 0
     while (tokenType in tokens) {
       advanceLexerWithNewLineCounting()
@@ -254,119 +229,26 @@ class FSharpDummyParser : PsiParser {
     return count > 0
   }
 
-  /**
-   * Advances lexer if current token is of expected type, does nothing otherwise.
-   * @return true if token matches, false otherwise.
-   */
-  fun PsiBuilder.tryEatToken(token: IElementType): Boolean = if (tokenType == token) {
-    advanceLexerWithNewLineCounting()
-    true
-  } else false
-
-
-  /** Advance lexer and returns eaten token */
-  fun PsiBuilder.eatToken(): IElementType? {
-    val token = tokenType
-    advanceLexerWithNewLineCounting()
-    return token
-  }
-
   /** Advance lexer until (exclusive) any given token type */
-  fun PsiBuilder.eatUntilAny(vararg tokenTypes: IElementType) {
+  private fun PsiBuilder.eatUntilAny(vararg tokenTypes: IElementType) {
     while (tokenType != null && tokenType !in tokenTypes) {
       advanceLexerWithNewLineCounting()
     }
   }
 
-  /** Advance lexer until (exclusive) new line token */
-  fun PsiBuilder.eatToNewLine() {
-    var i = 0
-    while (true) {
-      val token = rawLookup(i)
-      if (token == null || token == FSharpTokenType.NEW_LINE) {
-        val offset = rawTokenIndex() + i
-        while (!eof() && rawTokenIndex() < offset) {
-          advanceLexerWithNewLineCounting()
-        }
-        return
-      }
-      i++
-    }
-  }
-
-  /** Returns next token text */
-  fun PsiBuilder.peekTokenText(): String? {
-    val m = mark()
-    advanceLexerWithNewLineCounting()
-    val text = tokenText
-    m.rollbackTo()
-    return text
-  }
-
-  /** Returns next token text. if step == 0 then returns current text  */
-  fun PsiBuilder.peekTokenText(step: Int): String? {
-    val m = mark()
-    if (step < 0) throw Exception()
-    for (i in 0 until step) advanceLexerWithNewLineCounting()
-
-    val text = tokenText
-    m.rollbackTo()
-    return text
-  }
-
-  /** Returns next token type*/
-  fun PsiBuilder.peekToken(): IElementType? {
-    var offset = 0
-    while (true) {
-      offset++
-      val token = rawLookup(offset)
-      if (token == null) return null
-      if (!isWhitespaceOrComment(token)) return token
-    }
-  }
-
-  /** Returns next token type. If step == 0 - returns current token type */
-  fun PsiBuilder.peekToken(step: Int): IElementType? {
-    if (step == 0) return tokenType
-    var offset = 0
-    var read = 0
-    while (true) {
-      offset++
-      val token = rawLookup(offset)
-      if (token == null) return null
-      if (!isWhitespaceOrComment(token)) read++
-      if (read >= step) return token
-    }
-  }
-
-  /** Performs given check and returns its result. After checking - rollbacks builder */
-  inline fun <T> PsiBuilder.checkAhead(look: PsiBuilder.() -> T): T {
-    val point = mark()
-    val result = look()
-    point.rollbackTo()
-    return result
-  }
-
   /** Repeats given action until lexer advances and action returns true */
-  inline fun PsiBuilder.whileMakingProgress(action: PsiBuilder.() -> Boolean) {
+  private inline fun PsiBuilder.whileMakingProgress(action: PsiBuilder.() -> Boolean) {
     var position = currentOffset
     while (action() && position != currentOffset) {
       position = currentOffset
     }
   }
 
-  /** Returns true if builder was advanced during given action */
-  inline fun PsiBuilder.isProgressMade(action: () -> Unit): Boolean {
-    val position = currentOffset
-    action()
-    return currentOffset > position
-  }
-
   /**
    * Parse node of given type if builder was advanced.
    * Returns true if node was parsed (and builder was advanced)
    */
-  inline fun PsiBuilder.parse(nodeType: IElementType, action: PsiBuilder.() -> Unit): Boolean {
+  private inline fun PsiBuilder.parse(nodeType: IElementType, action: PsiBuilder.() -> Unit): Boolean {
     val position = rawTokenIndex()
     val mark = mark()
     action()
@@ -383,7 +265,7 @@ class FSharpDummyParser : PsiParser {
    * Parse node of returned type, or just scan, if action returns null.
    * Returns true if builder was advanced
    * */
-  inline fun PsiBuilder.parse(action: () -> IElementType?): Boolean {
+  private inline fun PsiBuilder.parse(action: () -> IElementType?): Boolean {
     val mark = mark()
     val positionBefore = rawTokenIndex()
 
@@ -405,7 +287,7 @@ class FSharpDummyParser : PsiParser {
    * Parse node of returned type, or just scan, if action returns false.
    * Returns true if node was parsed (and builder was advanced)
    * */
-  inline fun PsiBuilder.tryParse(type: IElementType, action: () -> Boolean): Boolean {
+  private inline fun PsiBuilder.tryParse(type: IElementType, action: () -> Boolean): Boolean {
     val mark = mark()
     val positionBefore = rawTokenIndex()
 
@@ -422,13 +304,12 @@ class FSharpDummyParser : PsiParser {
     return true
   }
 
-
   /**
    * Parse node if action returns true or rollback otherwise.
    * Node will not be created if lexer was not advance
    * returns true if node was parsed (and builder was advanced)
    * */
-  inline fun PsiBuilder.parseOrRollback(nodeType: IElementType, action: () -> Boolean): Boolean {
+  private inline fun PsiBuilder.parseOrRollback(nodeType: IElementType, action: () -> Boolean): Boolean {
     val mark = mark()
     val positionBefore = rawTokenIndex()
 
@@ -445,30 +326,8 @@ class FSharpDummyParser : PsiParser {
     }
   }
 
-  /**
-   * Parse node if action returns not null or rollback otherwise.
-   * Node will not be created if lexer was not advance
-   * returns true if node was parsed (and builder was advanced)
-   */
-  inline fun PsiBuilder.parseOrRollback(action: () -> IElementType?): Boolean {
-    val mark = mark()
-    val positionBefore = rawTokenIndex()
-
-    val result = action()
-    if (result == null) {
-      mark.rollbackTo()
-      return false
-    }
-    if (positionBefore == rawTokenIndex()) {
-      mark.drop()
-      return false
-    }
-    mark.done(result)
-    return true
-  }
-
   /** Scans lexer. Allows to rollback, if action returns true. Returns true if lexer was advanced */
-  inline fun PsiBuilder.scanOrRollback(action: () -> Boolean): Boolean {
+  private inline fun PsiBuilder.scanOrRollback(action: () -> Boolean): Boolean {
     val mark = mark()
     val positionBefore = rawTokenIndex()
 
