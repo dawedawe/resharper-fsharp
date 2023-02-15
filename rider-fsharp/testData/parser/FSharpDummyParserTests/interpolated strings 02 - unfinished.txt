@@ -1,0 +1,9 @@
+FSharpFile
+  PsiElement(DUMMY_BLOCK)
+    PsiElement(INTERPOLATED_STRING_LITERAL_EXPRESSION)
+      FSharpInterpolatedStringLiteralExpressionPart
+        PsiElement(REGULAR_INTERPOLATED_STRING_START)('$"1 {')
+      PsiElement(INT32)('2')
+      PsiElement(NEW_LINE)('\n')
+      PsiElement(NEW_LINE)('\n')
+      PsiElement(INT32)('3')

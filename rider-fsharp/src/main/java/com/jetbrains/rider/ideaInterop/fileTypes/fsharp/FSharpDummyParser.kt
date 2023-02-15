@@ -27,7 +27,7 @@ class FSharpDummyParser : PsiParser {
   private fun PsiBuilder.parseFile(fileElementType: IElementType) {
     parse(fileElementType) {
       whileMakingProgress {
-        eatFilteredTokens()
+        eatFilteredTokens() //TODO: remove?
         when (tokenType) {
           FSharpTokenType.NAMESPACE -> parseNamespace()
           FSharpTokenType.MODULE -> if (!tryParseTopLevelModule()) parseBlock()
@@ -49,7 +49,10 @@ class FSharpDummyParser : PsiParser {
     return tryParse(FSharpElementTypes.INDENTATION_BLOCK) {
       val myIndentation = getCurrentIndentation()
       val isTopLevel = myIndentation == 0
-      parseExpressions()
+
+      parseExpressionsOnLine()
+      advanceLexerWithNewLineCounting()
+      trySkipEmptyLines()
       parseBlockBody(myIndentation) || isTopLevel
     }
   }
@@ -120,13 +123,11 @@ class FSharpDummyParser : PsiParser {
       }
     }
 
-  private fun PsiBuilder.parseExpressions() {
-    while (!eof() && tokenType != FSharpTokenType.NEW_LINE) {
-      if (!parseDummyExpression()) advanceLexerWithNewLineCounting()
+  private fun PsiBuilder.parseExpressionsOnLine() {
+    whileMakingProgress {
+      if (!parseDummyExpression() && tokenType != FSharpTokenType.NEW_LINE) advanceLexerWithNewLineCounting()
+      tokenType != FSharpTokenType.NEW_LINE
     }
-    if (eof()) return
-    advanceLexerWithNewLineCounting()
-    trySkipEmptyLines()
   }
 
   private fun PsiBuilder.tryParseTopLevelModule() =
@@ -196,6 +197,7 @@ class FSharpDummyParser : PsiParser {
   }
 
   private fun PsiBuilder.advanceLexerWithNewLineCounting() {
+    if (eof()) return
     when (tokenType) {
       FSharpTokenType.NEW_LINE -> {
         advanceLexer()

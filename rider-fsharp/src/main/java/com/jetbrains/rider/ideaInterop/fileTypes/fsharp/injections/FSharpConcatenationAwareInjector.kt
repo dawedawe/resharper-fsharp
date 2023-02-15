@@ -20,23 +20,16 @@ class FSharpConcatenationAwareInjector :
             FSharpStringLiteralType.VerbatimInterpolatedString,
             FSharpStringLiteralType.TripleQuoteInterpolatedString -> {
               val parts = literal.children.filterIsInstance<FSharpInterpolatedStringLiteralExpressionPart>()
-              val count = parts.count()
 
-              if (count == 0) return listOf(literal.getRangeTrimQuotes()) else {
+              // can't reliably inspect injected PSI with interpolations
+              if (parts.count() > 1) {
+                disableInspections = true
+              }
 
-                // can't reliably inspect injected PSI with interpolations
-                if (count > 1) {
-                  disableInspections = true
-                }
-
-                parts.mapIndexed { index, part ->
-                  val startOffsetInPart =
-                    if (index == 0) ElementManipulators.getValueTextRange(literal).startOffset else 1
-                  TextRange(
-                    part.startOffsetInParent + startOffsetInPart,
-                    part.startOffsetInParent + part.textLength - 1
-                  )
-                }
+              parts.mapIndexed { index, part ->
+                val startOffsetInPart =
+                  if (index == 0) ElementManipulators.getValueTextRange(literal).startOffset else 1
+                TextRange(part.startOffsetInParent + startOffsetInPart, part.startOffsetInParent + part.textLength - 1)
               }
             }
 

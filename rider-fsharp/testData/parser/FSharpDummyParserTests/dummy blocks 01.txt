@@ -1,0 +1,20 @@
+FSharpFile
+  PsiElement(DUMMY_BLOCK)
+    PsiElement(LET)('let')
+    PsiElement(WHITESPACE)(' ')
+    PsiElement(IDENT)('a')
+    PsiElement(WHITESPACE)(' ')
+    PsiElement(EQUALS)('=')
+    PsiElement(WHITESPACE)(' ')
+    FSharpStringLiteralExpression
+      PsiElement(STRING)('"a"')
+    PsiElement(NEW_LINE)('\n')
+  PsiElement(DUMMY_BLOCK)
+    PsiElement(LET)('let')
+    PsiElement(WHITESPACE)(' ')
+    PsiElement(IDENT)('b')
+    PsiElement(WHITESPACE)(' ')
+    PsiElement(EQUALS)('=')
+    PsiElement(WHITESPACE)(' ')
+    FSharpStringLiteralExpression
+      PsiElement(STRING)('"b"')

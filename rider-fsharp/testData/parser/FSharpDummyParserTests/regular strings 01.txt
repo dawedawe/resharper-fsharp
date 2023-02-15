@@ -1,0 +1,14 @@
+FSharpFile
+  PsiElement(DUMMY_BLOCK)
+    FSharpStringLiteralExpression
+      PsiElement(STRING)('"1"')
+    PsiElement(NEW_LINE)('\n')
+    PsiElement(NEW_LINE)('\n')
+  PsiElement(DUMMY_BLOCK)
+    FSharpStringLiteralExpression
+      PsiElement(VERBATIM_STRING)('@"123"')
+    PsiElement(NEW_LINE)('\n')
+    PsiElement(NEW_LINE)('\n')
+  PsiElement(DUMMY_BLOCK)
+    FSharpStringLiteralExpression
+      PsiElement(TRIPLE_QUOTED_STRING)('"""1"""')

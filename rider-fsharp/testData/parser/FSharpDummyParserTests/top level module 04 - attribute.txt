@@ -1,0 +1,12 @@
+FSharpFile
+  PsiElement(LBRACK_LESS)('[<')
+  PsiElement(IDENT)('Attr')
+  PsiElement(GREATER_RBRACK)('>]')
+  PsiElement(WHITESPACE)(' ')
+  PsiElement(TOP_LEVEL_MODULE)
+    PsiElement(MODULE)('module')
+    PsiElement(WHITESPACE)(' ')
+    PsiElement(IDENT)('M')
+    PsiElement(NEW_LINE)('\n')
+    PsiElement(DUMMY_BLOCK)
+      PsiElement(INT32)('5')
