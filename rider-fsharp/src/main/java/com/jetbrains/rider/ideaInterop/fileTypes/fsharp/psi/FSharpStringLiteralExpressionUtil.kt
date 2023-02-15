@@ -23,6 +23,7 @@ fun FSharpStringLiteralExpression.getRangeTrimQuotes(): TextRange {
 
     FSharpStringLiteralType.TripleQuoteInterpolatedString -> 4
   }
+
   val endOffset = when (literalType) {
     FSharpStringLiteralType.RegularString,
     FSharpStringLiteralType.VerbatimString,
@@ -40,35 +41,5 @@ fun FSharpStringLiteralExpression.getRangeTrimQuotes(): TextRange {
   return TextRange(start, end)
 }
 
-fun FSharpStringLiteralExpression.getRelativeRangeTrimQuotes(): TextRange {
-  return getRangeTrimQuotes().shiftLeft(textRange.startOffset)
-}
-
-object FSharpStringExpressionUtil {
-  private val PsiElement.firstNonOuterChild: PsiElement?
-    get() {
-      tailrec fun search(element: PsiElement?): PsiElement? {
-        return when (element) {
-          null -> null
-          !is OuterLanguageElement -> element
-          else -> search(element.nextSibling)
-        }
-      }
-
-      return search(firstChild)
-    }
-
-  private fun tryGetFirstToken(expression: FSharpInterpolatedStringLiteralExpression): LeafElement? {
-    return expression.firstNonOuterChild?.firstNonOuterChild?.node as LeafElement?
-  }
-
-//  fun getLiteralType(expression: FSharpInterpolatedStringLiteralExpression): FSharpStringLiteralType {
-//    return when (tryGetFirstToken(expression)?.elementType) {
-//      in FSharpTokenType.REGULAR_STRINGS -> StringLiteralType.RegularInterpolatedString
-//      in FSharpTokenType.VERBATIM_STRINGS -> StringLiteralType.VerbatimInterpolatedString
-//      FSharpTokenType.INTERPOLATED_STRING_RAW_MULTI_LINE_START -> StringLiteralType.MultiLineRawInterpolatedString
-//      FSharpTokenType.INTERPOLATED_STRING_RAW_SINGLE_LINE_START -> StringLiteralType.SingleLineRawInterpolatedString
-//      else -> error("invalid element type $expression.elementType")
-//    }
-//  }
-}
+fun FSharpStringLiteralExpression.getRelativeRangeTrimQuotes() =
+  getRangeTrimQuotes().shiftLeft(textRange.startOffset)

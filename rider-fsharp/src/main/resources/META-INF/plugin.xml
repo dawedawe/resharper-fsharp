@@ -20,6 +20,9 @@
                 order="first"/>
         <concatenationAwareInjector
                 implementation="com.jetbrains.rider.ideaInterop.fileTypes.fsharp.injections.FSharpConcatenationAwareInjector"/>
+        <lang.elementManipulator
+                forClass="com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.FSharpStringLiteralExpression"
+                implementationClass="com.jetbrains.rider.ideaInterop.fileTypes.fsharp.psi.FSharpStringElementManipulator"/>
         <fileType name="F#" language="F#" extensions="fs;fsi;ml;mli"
                   implementationClass="com.jetbrains.rider.ideaInterop.fileTypes.fsharp.FSharpFileType"
                   fieldName="INSTANCE"/>

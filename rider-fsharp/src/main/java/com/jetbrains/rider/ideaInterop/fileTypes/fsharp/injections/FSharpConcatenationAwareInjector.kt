@@ -2,6 +2,8 @@ package com.jetbrains.rider.ideaInterop.fileTypes.fsharp.injections
 
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.ElementManipulators
+import com.intellij.refactoring.suggested.endOffset
+import com.intellij.refactoring.suggested.startOffset
 import com.jetbrains.rider.ideaInterop.fileTypes.common.psi.ClrLanguageInterpolatedStringLiteralExpression
 import com.jetbrains.rider.plugins.appender.database.common.ClrLanguageConcatenationAwareInjector
 import org.intellij.plugins.intelliLang.inject.config.BaseInjection
@@ -15,25 +17,22 @@ class FSharpConcatenationAwareInjector :
     override fun registerInterpolatedStringValueRanges(literal: ClrLanguageInterpolatedStringLiteralExpression): List<TextRange> {
       return when (literal) {
         is FSharpInterpolatedStringLiteralExpression -> {
-          when (literal.literalType) {
-            FSharpStringLiteralType.RegularInterpolatedString,
-            FSharpStringLiteralType.VerbatimInterpolatedString,
-            FSharpStringLiteralType.TripleQuoteInterpolatedString -> {
-              val parts = literal.children.filterIsInstance<FSharpInterpolatedStringLiteralExpressionPart>()
+          val parts = literal.children.filterIsInstance<FSharpInterpolatedStringLiteralExpressionPart>()
+          val partsCount = parts.count()
 
-              // can't reliably inspect injected PSI with interpolations
-              if (parts.count() > 1) {
-                disableInspections = true
-              }
+          // can't reliably inspect injected PSI with interpolations
+          if (partsCount > 1) disableInspections = true
 
-              parts.mapIndexed { index, part ->
-                val startOffsetInPart =
-                  if (index == 0) ElementManipulators.getValueTextRange(literal).startOffset else 1
-                TextRange(part.startOffsetInParent + startOffsetInPart, part.startOffsetInParent + part.textLength - 1)
-              }
-            }
+          val range = ElementManipulators.getValueTextRange(literal)
 
-            else -> emptyList()
+          parts.mapIndexed { index, part ->
+            val startOffsetInPart =
+              if (index == 0) range.startOffset else part.startOffsetInParent + 1
+
+            val endOffsetInPart =
+              if (index == partsCount - 1) range.endOffset else part.startOffsetInParent + part.textLength - 1
+
+            TextRange(startOffsetInPart, endOffsetInPart)
           }
         }
 

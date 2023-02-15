@@ -1,6 +1,7 @@
 package com.jetbrains.rider.plugins.fsharp.test.cases.parser
 
 import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.FSharpParserDefinition
+import com.jetbrains.rider.ideaInterop.fileTypes.fsharp.FSharpScriptParserDefinition
 import com.jetbrains.rider.test.RiderFrontendParserTest
 
 class FSharpDummyParserTests : RiderFrontendParserTest("", "fs", FSharpParserDefinition()) {
@@ -36,6 +37,6 @@ class FSharpDummyParserTests : RiderFrontendParserTest("", "fs", FSharpParserDef
 }
 
 
-class FSharpScriptDummyParserTests : RiderFrontendParserTest("", "fsi", FSharpParserDefinition()) {
+class FSharpScriptDummyParserTests : RiderFrontendParserTest("", "fsi", FSharpScriptParserDefinition()) {
   fun `test no module 01`() = doTest()
 }
