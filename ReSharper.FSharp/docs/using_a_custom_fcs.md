@@ -94,6 +94,11 @@ Now you can finally build ReSharper.FSharp with your custom FSC package:
 dotnet build
 ```
 
+## Debugging
+
+You can now open the ReSharper.FSharp solution with your Rider IDE and start a Debug session.  
+To step into the sources of FCS, set a breakpoint on a call to it and when the breakpoint is hit, step into it. That should open your local JetBrains FCS sources and you can continue stepping through FCS code.
+
 ## Caveats
 
 You might need to clean your `JetBrains\fsharp\artifacts\` folder if you repeatedly want to build packages.
