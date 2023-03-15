@@ -44,37 +44,55 @@ git cherry-pick `<commit-hash>` --no-commit
 Open the `src\Compiler\FSharp.Compiler.Service.fsproj` file and edit the configured nuspec file (in the `<NuspecFile>` tag) to be `JetBrains.FSharp.Compiler.Service.nuspec`.
 
 Open the `src\Compiler\JetBrains.FSharp.Compiler.Service.nuspec` file and edit the package version (in the `<version>` tag) to be higher than the currently used version in ReSharper.FSharp. You can find the currently used version in the `ReSharper.FSharp\Directory.Build.props` file in the `<FSharpCompilerServiceVersion>` tag. Make sure the version you choose isn't already published somewhere. That might save you some trouble.  
-While you have the `ReSharper.FSharp\Directory.Build.props` file open, change the FSharpCompilerServiceVersion value to be the same as in your modified `JetBrains.FSharp.Compiler.Service.nuspec` file.
 You also need to change the VersionPrefix in the `<VersionPrefix>` tag in `src\Compiler\FSharp.Compiler.Service.fsproj`.  
-After you're done, all three files should have the same version defined.
 
 ![jfcs nuspec](./images/screenshot_of_jetbrains_nuspec.png)
 ![jfcs fsproj](./images/screenshot_of_jfcs_fsproj.png)
 
-Now you can try to build a new `JetBrains.FSharp.Compiler.Service` package with your changes included. In your `JetBrains/fsharp` clone, run the command:  
-`.\Build.cmd -noVisualStudio -pack -c Debug`  
-Or if you're on Linux/Max:  
-`./build.sh -pack -c Debug`  
+Now you can try to build a new `JetBrains.FSharp.Compiler.Service` package with your changes included. In your `JetBrains/fsharp` clone, run the command:
+```
+.\Build.cmd -noVisualStudio -pack -c Debug
+```
+Or if you're on Linux/Max:
+```
+./build.sh -pack -c Debug
+```
 
 You might need to fix the outfall of your changes in order to let the build succeed in the JetBrains fork of FCS.
 After a successful build, several packages can be found in `\artifacts\packages\Debug`.
 
 ## Letting ReSharper.FSharp consume your custom built `JetBrains.FSharp.Compiler.Service` package
 
-We will use a local package source. On Windows, that could be for example:  
-`mkdir C:\packages`
+We will use a local package source. On Windows, that could be for example:
+```
+mkdir C:\packages
+```
 
-Go to your `jetbrains\fsharp\artifacts\packages\Debug\PreRelease` folder and push the FCS packge to your local source:  
-`dotnet nuget push .\JetBrains.FSharp.Compiler.Service.2023.1.3-dev.final.nupkg --source C:\packages\`
+Go to your `jetbrains\fsharp\artifacts\packages\Debug\PreRelease` folder and push the FCS packge to your local source:
+```
+dotnet nuget push .\JetBrains.FSharp.Compiler.Service.2023.1.3-dev.final.nupkg --source C:\packages\
+```
 
-Go to the ReSharper.FSharp subdirectory in your JetBrains/Resharper.FSharp clone:  
-`cd ReSharper.FSharp`  
+Go to the ReSharper.FSharp subdirectory in your JetBrains/Resharper.FSharp clone:
+```
+cd ReSharper.FSharp
+```
 
-Add the created directory as a package source:  
-`dotnet nuget add source --name local --configfile ./nuget.config "C:\packages"`
+Add the created directory as a package source:
+```
+dotnet nuget add source --name local --configfile ./nuget.config "C:\packages"
+```
 
-Now you can finally build ReSharper.FSharp with your custom FSC package:  
-`dotnet build`
+Open the `ReSharper.FSharp\Directory.Build.props` file and change the FSharpCompilerServiceVersion value to have the same version as in your modified `JetBrains.FSharp.Compiler.Service.nuspec` file from above.  
+But make sure to keep the right postfix (here `-dev.final`), so the package is found.
+After you're done, all three files (`JetBrains.FSharp.Compiler.Service.nuspec`, `FSharp.Compiler.Service.fsproj`, `Directory.Build.props`) should have the same version defined.
+
+![ReSharper Directory.Build.props](./images/screenshot_of_resharper_directory_build_props.png)
+
+Now you can finally build ReSharper.FSharp with your custom FSC package:
+```
+dotnet build
+```
 
 ## Caveats
 
