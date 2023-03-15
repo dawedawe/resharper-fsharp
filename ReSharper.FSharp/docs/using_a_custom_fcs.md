@@ -59,7 +59,7 @@ Or if you're on Linux/Max:
 ```
 
 You might need to fix the outfall of your changes in order to let the build succeed in the JetBrains fork of FCS.
-After a successful build, several packages can be found in `\artifacts\packages\Debug`.
+After a successful build, several packages can be found in `\artifacts\packages\Debug\PreRelease`.
 
 ## Letting ReSharper.FSharp consume your custom built `JetBrains.FSharp.Compiler.Service` package
 
