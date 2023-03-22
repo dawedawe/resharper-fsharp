@@ -6,35 +6,29 @@ This fork is hosted at https://github.com/JetBrains/fsharp
 To test changes made in the vanilla FCS (https://github.com/dotnet/fsharp) to see how it affects ReSharper.FSharp you can do the following steps:
 
 First, make sure you have:
-- a personal fork of `dotnet/fsharp`
-- a clone of `JetBrains/fsharp`  
+- a fork and clone of `dotnet/fsharp`
 - a fork and clone of `JetBrains/ReSharper.FSharp`  
 
-Also, make sure you know which branches to use in your clones. Currently that would be `net231` for the JetBrains clones.
+Also, make sure you know which branches to use. Currently that would be the `net232` branch from JetBrains.
 ```
-git clone https://github.com/JetBrains/fsharp --single-branch --branch net231
-```
-```
-git clone https://github.com/JetBrains/resharper-fsharp --single-branch --branch net231
+git clone https://github.com/JetBrains/resharper-fsharp --single-branch --branch net232
 ```
 
-We assume you clone the JetBrains repositories to a folder called `JetBrains`.
+## Getting your changes into the JetBrains fsharp branch
 
-## Getting your changes into your JetBrains/fsharp clone
+The FCS changes you want to test should be pushed to your personal fork of `dotnet/fsharp`.
 
-The FCS changes you want to test should be pushed to your personal fork of `dotnet/fsharp`
-
-Next, go to your clone of JetBrains/fsharp and add your personal fork of `dotnet/fsharp` as a remote. In this example, the name `personal` is chosen for the new remote
+Next, go to the clone of your dotnet/fsharp fork and add `JetBrains/fsharp` as a remote. In this example, the name `jetbrains` is chosen for the new remote:
 ```
-git remote add personal https://github.com/<your-user-name>/fsharp.git
+git remote add jetbrains https://github.com/JetBrains/fsharp.git
 ```
 
-Fetch the newly added remote  
+Fetch the newly added remote:
 ```
-git fetch personal
+git fetch jetbrains net232
 ```
 
-Now you can [cherry-pick](https://git-scm.com/docs/git-cherry-pick) your changes from your `dotnet/fsharp` fork to bring them into `JetBrains/fsharp`  
+Now you can [cherry-pick](https://git-scm.com/docs/git-cherry-pick) your changes from your `dotnet/fsharp` fork to bring them into the `jetbrains/net232` branch  
 ```
 git cherry-pick `<commit-hash>` --no-commit
 ```
@@ -49,7 +43,7 @@ You also need to change the VersionPrefix in the `<VersionPrefix>` tag in `src\C
 ![jfcs nuspec](./images/screenshot_of_jetbrains_nuspec.png)
 ![jfcs fsproj](./images/screenshot_of_jfcs_fsproj.png)
 
-Now you can try to build a new `JetBrains.FSharp.Compiler.Service` package with your changes included. In your `JetBrains/fsharp` clone, run the command:
+Now you can try to build a new `JetBrains.FSharp.Compiler.Service` package with your changes included. In your `dotnet/fsharp` clone, run the command:
 ```
 .\Build.cmd -noVisualStudio -pack -c Debug
 ```
@@ -58,7 +52,7 @@ Or if you're on Linux/Max:
 ./build.sh -pack -c Debug
 ```
 
-You might need to fix the outfall of your changes in order to let the build succeed in the JetBrains fork of FCS.
+You might need to fix the outfall of your changes in order to let the build succeed in the JetBrains branch of FCS.
 After a successful build, several packages can be found in `\artifacts\packages\Debug\PreRelease`.
 
 ## Letting ReSharper.FSharp consume your custom built `JetBrains.FSharp.Compiler.Service` package
@@ -68,7 +62,7 @@ We will use a local package source. On Windows, that could be for example:
 mkdir C:\packages
 ```
 
-Go to your `jetbrains\fsharp\artifacts\packages\Debug\PreRelease` folder and push the FCS packge to your local source:
+Go to your `fsharp\artifacts\packages\Debug\PreRelease` folder and push the FCS packge to your local source:
 ```
 dotnet nuget push .\JetBrains.FSharp.Compiler.Service.2023.1.3-dev.final.nupkg --source C:\packages\
 ```
@@ -97,11 +91,11 @@ dotnet build
 ## Debugging
 
 You can now open the ReSharper.FSharp solution with your Rider IDE and start a Debug session.  
-To step into the sources of FCS, set a breakpoint on a call to it and when the breakpoint is hit, step into it. That should open your local JetBrains FCS sources and you can continue stepping through FCS code.
+To step into the sources of FCS, set a breakpoint on a call to it and when the breakpoint is hit, step into it. That should open your local JetBrains branch FCS sources and you can continue stepping through FCS code.
 
 ## Caveats
 
-You might need to clean your `JetBrains\fsharp\artifacts\` folder if you repeatedly want to build packages.
+You might need to clean your `fsharp\artifacts\` folder if you repeatedly want to build packages.
 
 Depending on the exact state of the code bases you might need to do some more changes to let things compile.  
 For example, at the time of writing it was needed to comment out  
