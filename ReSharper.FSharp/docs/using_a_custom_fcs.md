@@ -35,13 +35,10 @@ git cherry-pick `<commit-hash>` --no-commit
 
 ## Build a custom `JetBrains.FSharp.Compiler.Service` package
 
-Open the `src\Compiler\FSharp.Compiler.Service.fsproj` file and edit the configured nuspec file (in the `<NuspecFile>` tag) to be `JetBrains.FSharp.Compiler.Service.nuspec`.
+Open the [`src\Compiler\FSharp.Compiler.Service.fsproj`](https://github.com/JetBrains/fsharp/blob/0b71e53a653b41d2c490a6b9040bec7fe6acea97/src/Compiler/FSharp.Compiler.Service.fsproj#L46) file and edit the configured nuspec file (in the `<NuspecFile>` tag) to be `JetBrains.FSharp.Compiler.Service.nuspec`.
 
-Open the `src\Compiler\JetBrains.FSharp.Compiler.Service.nuspec` file and edit the package version (in the `<version>` tag) to be higher than the currently used version in ReSharper.FSharp. You can find the currently used version in the `ReSharper.FSharp\Directory.Build.props` file in the `<FSharpCompilerServiceVersion>` tag. Make sure the version you choose isn't already published somewhere. That might save you some trouble.  
-You also need to change the VersionPrefix in the `<VersionPrefix>` tag in `src\Compiler\FSharp.Compiler.Service.fsproj`.  
-
-![jfcs nuspec](./images/screenshot_of_jetbrains_nuspec.png)
-![jfcs fsproj](./images/screenshot_of_jfcs_fsproj.png)
+Open the [`src\Compiler\JetBrains.FSharp.Compiler.Service.nuspec`](https://github.com/JetBrains/fsharp/blob/0b71e53a653b41d2c490a6b9040bec7fe6acea97/src/Compiler/JetBrains.FSharp.Compiler.Service.nuspec#L4) file and edit the package version (in the `<version>` tag) to be higher than the currently used version in ReSharper.FSharp. You can find the currently used version in the [`ReSharper.FSharp\Directory.Build.props`](../Directory.Build.props) file in the `<FSharpCompilerServiceVersion>` tag. Make sure the version you choose isn't already published somewhere. That might save you some trouble.  
+You also need to change the VersionPrefix in the `<VersionPrefix>` tag in [`src\Compiler\FSharp.Compiler.Service.fsproj`](https://github.com/JetBrains/fsharp/blob/0b71e53a653b41d2c490a6b9040bec7fe6acea97/src/Compiler/FSharp.Compiler.Service.fsproj#L30).  
 
 Now you can try to build a new `JetBrains.FSharp.Compiler.Service` package with your changes included. In your `dotnet/fsharp` clone, run the command:
 ```
@@ -77,11 +74,9 @@ Add the created directory as a package source:
 dotnet nuget add source --name local --configfile ./nuget.config "C:\packages"
 ```
 
-Open the `ReSharper.FSharp\Directory.Build.props` file and change the FSharpCompilerServiceVersion value to have the same version as in your modified `JetBrains.FSharp.Compiler.Service.nuspec` file from above.  
+Open the [`ReSharper.FSharp\Directory.Build.props`](../Directory.Build.props) file and change the FSharpCompilerServiceVersion value to have the same version as in your modified `JetBrains.FSharp.Compiler.Service.nuspec` file from above.  
 But make sure to keep the right postfix (here `-dev.final`), so the package is found.
 After you're done, all three files (`JetBrains.FSharp.Compiler.Service.nuspec`, `FSharp.Compiler.Service.fsproj`, `Directory.Build.props`) should have the same version defined.
-
-![ReSharper Directory.Build.props](./images/screenshot_of_resharper_directory_build_props.png)
 
 Now you can finally build ReSharper.FSharp with your custom FSC package:
 ```
