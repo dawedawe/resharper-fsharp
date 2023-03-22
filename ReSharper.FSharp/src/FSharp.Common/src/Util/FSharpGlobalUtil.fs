@@ -97,11 +97,16 @@ module IgnoreAll =
     let ignoreAll = IgnoreAllBuilder()
 
 
+namespace JetBrains.ReSharper.Resources.Shell
+
+type ReadLockCookie = NonCSharpInteropReadLockCookie
+
+
 namespace JetBrains.ReSharper.Plugins.FSharp
 
 open JetBrains.Annotations
 open JetBrains.ProjectModel
-open JetBrains.RdBackend.Common.Features
+open JetBrains.ReSharper.Feature.Services.Protocol
 
 [<AbstractClass; Sealed; Extension>]
 type ProtocolSolutionExtensions =
